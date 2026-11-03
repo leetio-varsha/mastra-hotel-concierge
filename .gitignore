@@ -1,14 +1,16 @@
-output.txt
 node_modules
 dist
 .mastra
-src/mastra/public/
-.env.development
+output.txt
+
+# local env — never commit keys
 .env
 .env.local
+.env.development
+
+# local LibSQL databases (memory, workflow snapshots, traces)
 *.db
 *.db-*
-.netlify
-.vercel
-*.duckdb
-*.duckdb.wal
+
+# personal build notes
+NOTES.md

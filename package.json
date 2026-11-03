@@ -1,24 +1,25 @@
 {
   "name": "mastra-hotel-concierge",
   "version": "1.0.0",
-  "description": "A general-purpose Mastra agent with a local workspace, shell tools, memory, task tracking, web access, and recurring schedules.",
-  "main": "index.js",
+  "description": "Hotel search & booking concierge agent built with Mastra: tools, memory, human-in-the-loop workflow, scorers, tracing.",
   "private": true,
   "scripts": {
     "dev": "mastra dev",
     "build": "mastra build",
-    "start": "mastra start"
+    "start": "mastra start",
+    "chat": "tsx scripts/chat.ts",
+    "evals": "tsx evals/run.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
   },
   "dependencies": {
     "@mastra/core": "1.81.0",
-    "@mastra/duckdb": "1.17.0",
+    "@mastra/evals": "1.10.10",
     "@mastra/libsql": "1.28.0",
     "@mastra/memory": "1.40.0",
     "@mastra/observability": "1.23.0",
@@ -27,6 +28,9 @@
   "devDependencies": {
     "@types/node": "latest",
     "mastra": "1.37.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.12",
+    "tsx": "^4.20.0",
+    "dotenv": "^17.0.0"
   }
 }
