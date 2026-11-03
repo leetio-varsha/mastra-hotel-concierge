@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { Mastra } from '@mastra/core/mastra';
 import { LibSQLStore } from '@mastra/libsql';
 import { MastraStorageExporter, Observability, SensitiveDataFilter } from '@mastra/observability';
@@ -13,9 +14,12 @@ export const mastra = new Mastra({
   // Registering scorers lets runEvals persist scores and makes them available for trace scoring in Studio.
   scorers: { groundedHotelsScorer, clarifiesMissingInfoScorer, toolCallCorrectnessScorer },
   // One local LibSQL file holds conversation memory, workflow snapshots (suspended runs), scores and traces.
+  // `mastra dev` runs the server from src/mastra/public, so a relative "file:./mastra.db" would land there and
+  // Studio would not see what `npm run chat` / `npm run evals` wrote. INIT_CWD (set by npm for every script)
+  // pins the file to the project root instead.
   storage: new LibSQLStore({
     id: 'mastra-storage',
-    url: 'file:./mastra.db',
+    url: process.env.MASTRA_DB_URL ?? `file:${resolve(process.env.INIT_CWD ?? process.cwd(), 'mastra.db')}`,
   }),
   observability: new Observability({
     configs: {
