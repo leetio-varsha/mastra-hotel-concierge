@@ -173,7 +173,27 @@ scripts/chat.ts            terminal demo
 
 ## Notes on Mastra
 
-TODO
+Observations from building this on `@mastra/core` 1.81.0 / `mastra` CLI 1.37.0 (2026-11-03). Kept here because the friction a first-time user hits is the most useful thing a small demo can report back.
+
+What worked well:
+
+- `createStep` + `suspend()` / `resumeSchema` / `bail()` is a clean human-in-the-loop primitive. The whole confirm-or-decline flow is one step, and `run.resume()` from a different process works because snapshots live in LibSQL.
+- Model-router strings (`anthropic/claude-sonnet-5-5`): no provider packages, one env var to swap models.
+- `Memory` inherits the Mastra instance's storage; follow-ups like "cheaper option?" worked with `lastMessages: 20` and a thread id, no extra code.
+- `createScorer` with plain functions makes deterministic scorers unit-testable, and `runEvals` with `inputs: [...]` covers multi-turn memory with no extra setup.
+- The embedded docs in `node_modules/@mastra/*/dist/docs` are version-exact and grep-able. That was the most reliable reference during the build.
+- Studio shows agents, the workflow graph with the suspend/resume form, traces and scores with no config beyond `Observability` + the storage exporter.
+
+Things that cost time, with the workaround used here:
+
+- `mastra dev` runs the server with `process.cwd()` inside `src/mastra/public`. A relative LibSQL URL such as `file:./mastra.db` therefore creates one database there, while `tsx` scripts create another at the project root, and Studio never shows the CLI's traces, scores or threads. This project resolves the path against `INIT_CWD` (set by npm for every script). A project-root helper or an absolute-path example in the docs would prevent this.
+- With LibSQL as the only store, Observability logs "does not support batch creating metrics / logs / scores" on every start. Traces and scores do persist (`mastra_ai_spans`, `mastra_scorers`); only the observability-side copy is dropped, so the scores warning reads more alarming than it is. The Studio quickstart avoids it by adding `@mastra/duckdb`; this demo keeps LibSQL on purpose.
+- Live scorers run on every `agent.generate()`, including the structured-output calls a workflow makes with the same agent. The first version of `grounded-hotels` flagged those as hallucinations because the hotel list arrived in the prompt, not in a tool result. The scorer now treats user-message content as grounded as well. A sentence in the evals docs ("agents used inside workflows are scored too") would save the surprise.
+- For a follow-up turn, `run.output` holds only that turn; earlier tool results are in `run.input.rememberedMessages`. Found through a false negative on the "cheaper option?" case.
+- `extractToolCalls()` from `@mastra/evals/scorers/utils` returns names and ids but not arguments; `extractToolResults()` returns both. The argument scorer uses the latter.
+- Studio's REST paths found by trial: traces at `/api/observability/traces`, the OpenAPI document at `/api/openapi.json` (the root path 404s), `/swagger-ui` works.
+- `npm create mastra@latest` now scaffolds the full Agent Harness template (workspace, sandbox tools, web search, schedules, DuckDB store, skills). This project was stripped down to core + libsql + memory + observability.
+- Small typing nits: `tool.execute()` called by hand needs the context argument even though the runtime always supplies it; `runEvals` wants a `RequestContext` instance for `requestContext`, not a plain object.
 
 ## License
 
